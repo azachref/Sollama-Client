@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>{{ app_name }} - AI Studio & Client</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Marked Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- Highlight.js for Syntax Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+  <!-- Custom Multi-Theme Styles -->
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body class="flex flex-col h-screen overflow-hidden selection:bg-blue-600 selection:text-white">
+
+  <!-- Top App Navigation Bar (Clean & Minimalist: No Model or Theme Selector) -->
+  <header class="app-header h-14 border-b px-4 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center gap-3">
+      <!-- Mobile Drawer Hamburger -->
+      <button onclick="toggleMobileSidebar()" class="md:hidden p-1.5 rounded-lg app-text-muted hover:text-white hover:bg-[var(--hover-bg)]">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+
+      <!-- App Logo -->
+      <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('chat')">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </div>
+        <span class="font-bold text-base tracking-tight bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">SuperOllama</span>
+      </div>
+
+      <!-- Ollama Status Pill -->
+      <div id="ollama-status-pill" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full border app-border app-input text-xs">
+        <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+        <span class="app-text-muted">Connecting...</span>
+      </div>
+    </div>
+
+    <!-- Right Quick Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Incognito Toggle -->
+      <button id="incognito-toggle-btn" onclick="toggleIncognito()" class="px-3 py-1.5 rounded-xl app-text-muted hover:text-white hover:bg-[var(--hover-bg)] text-xs flex items-center gap-1.5 border app-border transition-all" title="Incognito Mode (Ephemeral, no history saved)">
+        <i data-lucide="eye-off" class="w-4 h-4"></i>
+        <span>Incognito</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Body Wrapper -->
+  <div class="flex flex-1 overflow-hidden relative">
+
+    <!-- Sidebar (Collapsible on mobile) -->
+    <aside id="sidebar-container" class="sidebar-drawer md:static w-64 border-r app-sidebar flex flex-col shrink-0 z-40">
+      
+      <!-- Action: New Chat (Uses Theme Accent Color) -->
+      <div class="p-3 border-b app-border">
+        <button onclick="createNewChat()" class="w-full py-2.5 px-3 btn-accent text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-all">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          <span>New Chat</span>
+        </button>
+      </div>
+
+      <!-- Navigation Sections -->
+      <nav class="p-2 space-y-1 border-b app-border text-xs font-medium">
+        <button id="nav-btn-chat" onclick="switchTab('chat')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl nav-active transition-colors">
+          <i data-lucide="message-square" class="w-4 h-4"></i>
+          <span>Chats</span>
+        </button>
+        <button id="nav-btn-projects" onclick="switchTab('projects')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:bg-[var(--hover-bg)] hover:text-slate-200 transition-colors">
+          <i data-lucide="folder-kanban" class="w-4 h-4"></i>
+          <span>Projects</span>
+        </button>
+        <button id="nav-btn-characters" onclick="switchTab('characters')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:bg-[var(--hover-bg)] hover:text-slate-200 transition-colors">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Characters</span>
+        </button>
+        <button id="nav-btn-imagine" onclick="switchTab('imagine')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:bg-[var(--hover-bg)] hover:text-slate-200 transition-colors">
+          <i data-lucide="wand-2" class="w-4 h-4"></i>
+          <span>Imagine (SD Studio)</span>
+        </button>
+        <button id="nav-btn-artifacts" onclick="switchTab('artifacts')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:bg-[var(--hover-bg)] hover:text-slate-200 transition-colors">
+          <i data-lucide="box" class="w-4 h-4"></i>
+          <span>Artifacts</span>
+        </button>
+        <button id="nav-btn-settings" onclick="switchTab('settings')" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-400 hover:bg-[var(--hover-bg)] hover:text-slate-200 transition-colors">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Chat History Header -->
+      <div class="px-3 pt-3 pb-1 flex items-center justify-between text-[11px] font-semibold app-text-muted uppercase tracking-wider">
+        <span>History</span>
+        <button onclick="clearChatHistory()" class="hover:text-red-400" title="Clear all history">
+          <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Chat History Scroll List -->
+      <div id="chat-history-list" class="flex-1 overflow-y-auto px-2 py-1 space-y-0.5">
+        <!-- Rendered by app.js -->
+      </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile drawer -->
+    <div id="mobile-overlay" onclick="closeMobileSidebar()" class="md:hidden fixed inset-0 bg-black/60 z-30 hidden"></div>
+
+    <!-- Main Workspace Content Container -->
+    <main class="flex-1 flex flex-col overflow-hidden app-main relative">
+
+      <!-- ================= SECTION 1: CHAT ================= -->
+      <section id="section-chat" class="flex-1 flex flex-col h-full overflow-hidden">
+        
+        <!-- Incognito Mode Banner -->
+        <div id="incognito-banner" class="hidden px-4 py-2 bg-purple-950/70 border-b border-purple-500/30 flex items-center justify-center gap-2 text-xs text-purple-300">
+          <i data-lucide="eye-off" class="w-4 h-4"></i>
+          <span>Incognito Chat Active — Messages & history are ephemeral and not saved to disk.</span>
+        </div>
+
+        <!-- Active Context Indicator Bar (Prominent Persona & Project Badges) -->
+        <div id="chat-context-indicator-bar" class="hidden context-indicator-bar">
+          <div class="flex items-center gap-3">
+            <div id="context-character-pill" class="hidden flex items-center gap-2 px-3 py-1 rounded-full bg-purple-600/15 border border-purple-500/30 text-xs"></div>
+            <div id="context-project-pill" class="hidden flex items-center gap-2 px-3 py-1 rounded-full bg-blue-600/15 border border-blue-500/30 text-xs"></div>
+          </div>
+          <span class="text-[11px] app-text-muted">Dedicated Context Active</span>
+        </div>
+
+        <!-- Chat Messages Scroll Container -->
+        <div id="chat-scroll-area" class="flex-1 overflow-y-auto px-4 py-6 scroll-smooth">
+          
+          <!-- Welcome Hero (Big-Tech Gemini / ChatGPT Style) -->
+          <div id="chat-welcome-hero" class="max-w-2xl mx-auto py-12 text-center flex flex-col items-center justify-center">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/20 mb-5">
+              <i data-lucide="sparkles" class="w-8 h-8"></i>
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-blue-400 via-indigo-200 to-purple-400 bg-clip-text text-transparent">Where knowledge begins</h1>
+            <p class="text-sm app-text-secondary max-w-md mb-8">Ask questions, write and run code directly, search offline knowledge, or attach files.</p>
+
+            <!-- Quick Prompt Suggestions Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full text-left">
+              <div onclick="document.getElementById('chat-input-textarea').value='Write an interactive HTML/JS Calculator app with CSS styles'; sendMessage();" class="p-3.5 rounded-xl border app-border app-card hover:border-[var(--accent)] cursor-pointer transition-all">
+                <div class="text-xs font-semibold mb-1 flex items-center gap-1.5"><i data-lucide="code" class="w-3.5 h-3.5 text-blue-400"></i> Code App Generator</div>
+                <div class="text-[12px] app-text-secondary">Generate and run an interactive HTML/JS App</div>
+              </div>
+              <div onclick="document.getElementById('chat-input-textarea').value='What is the current weather forecast for Tokyo?'; sendMessage();" class="p-3.5 rounded-xl border app-border app-card hover:border-[var(--accent)] cursor-pointer transition-all">
+                <div class="text-xs font-semibold mb-1 flex items-center gap-1.5"><i data-lucide="cloud-sun" class="w-3.5 h-3.5 text-amber-400"></i> Open-Meteo Weather</div>
+                <div class="text-[12px] app-text-secondary">Check current weather in Tokyo</div>
+              </div>
+              <div onclick="document.getElementById('chat-input-textarea').value='Tell me about the history of James Webb Space Telescope from Wikipedia'; sendMessage();" class="p-3.5 rounded-xl border app-border app-card hover:border-[var(--accent)] cursor-pointer transition-all">
+                <div class="text-xs font-semibold mb-1 flex items-center gap-1.5"><i data-lucide="globe" class="w-3.5 h-3.5 text-emerald-400"></i> Wikipedia Search</div>
+                <div class="text-[12px] app-text-secondary">Search James Webb Telescope info</div>
+              </div>
+              <div onclick="document.getElementById('chat-input-textarea').value='Search books by Arthur Conan Doyle in Open Library'; sendMessage();" class="p-3.5 rounded-xl border app-border app-card hover:border-[var(--accent)] cursor-pointer transition-all">
+                <div class="text-xs font-semibold mb-1 flex items-center gap-1.5"><i data-lucide="book" class="w-3.5 h-3.5 text-purple-400"></i> Open Library</div>
+                <div class="text-[12px] app-text-secondary">Find books by Arthur Conan Doyle</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Message Feed -->
+          <div id="chat-messages-container" class="space-y-4">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Floating Chat Input Bar -->
+        <div class="p-4 shrink-0 max-w-4xl mx-auto w-full">
+          <!-- Attached Thumbnails Preview -->
+          <div id="attached-thumbnails-bar" class="hidden flex items-center gap-2 p-2 mb-2 app-card rounded-xl border app-border"></div>
+
+          <!-- Input Container -->
+          <div class="relative app-input border rounded-2xl shadow-xl focus-within:border-[var(--border-focus)] transition-all flex flex-col p-2">
+            <textarea
+              id="chat-input-textarea"
+              rows="1"
+              placeholder="Ask anything, run code, or attach documents..."
+              class="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-muted)] text-sm md:text-base px-3 py-2 resize-none focus:outline-none max-h-48 overflow-y-auto"
+            ></textarea>
+
+            <!-- Bottom Toolbar inside input -->
+            <div class="flex items-center justify-between pt-1 px-1">
+              <div class="flex items-center gap-1">
+                <label class="p-2 app-text-muted hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] rounded-lg cursor-pointer transition-colors" title="Attach Image (Vision) or Document (RAG)">
+                  <i data-lucide="paperclip" class="w-4 h-4"></i>
+                  <input id="chat-file-upload-input" type="file" class="hidden" accept="image/*,.pdf,.docx,.doc,.txt,.md,.json,.csv,.py,.js" />
+                </label>
+              </div>
+
+              <!-- Send / Stop Button -->
+              <button id="chat-send-btn" onclick="sendMessage()" class="w-8 h-8 rounded-xl btn-accent flex items-center justify-center text-white transition-all shadow-md">
+                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 2: PROJECTS ================= -->
+      <section id="section-projects" class="hidden flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Projects Workspaces</h2>
+            <p class="text-xs app-text-secondary">Create isolated workspaces with custom system context, dedicated files, and separated chats.</p>
+          </div>
+          <button onclick="createNewProjectModal()" class="px-4 py-2 btn-accent text-white rounded-xl text-xs font-semibold flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Create Project
+          </button>
+        </div>
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- ================= SECTION 3: CHARACTERS ================= -->
+      <section id="section-characters" class="hidden flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Characters & Personas</h2>
+            <p class="text-xs app-text-secondary">Custom AI personalities with their own avatars, unique instructions, and custom models.</p>
+          </div>
+          <button onclick="openCreateCharacterModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl text-xs font-semibold flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Create Character
+          </button>
+        </div>
+        <div id="characters-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- ================= SECTION 4: IMAGINE STUDIO (SD FORGE) ================= -->
+      <section id="section-imagine" class="hidden flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-2xl font-bold">Imagine Studio</h2>
+            <p class="text-xs app-text-secondary">Generate high-fidelity AI imagery using Stable Diffusion Forge Neo API.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="sd-preset-select" class="app-input border rounded-xl px-3 py-1.5 text-xs font-medium focus:outline-none cursor-pointer">
+              <option value="">⚡ Load Preset...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Generation Panel -->
+          <div class="lg:col-span-1 p-5 rounded-2xl border app-border app-card space-y-4">
+            <div>
+              <label class="block text-xs font-semibold mb-1">Prompt</label>
+              <textarea id="sd-prompt-input" rows="3" placeholder="A futuristic cyberpunk detective in neon rain, masterwork, 8k..." class="w-full app-input border rounded-xl p-2.5 text-xs placeholder-[var(--text-muted)] focus:outline-none"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold mb-1">Negative Prompt</label>
+              <textarea id="sd-neg-prompt-input" rows="2" class="w-full app-input border rounded-xl p-2.5 text-xs placeholder-[var(--text-muted)] focus:outline-none">low quality, bad anatomy, blurry, watermark, deformed</textarea>
+            </div>
+
+            <!-- Active LoRAs selector -->
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <label class="text-[11px] font-semibold app-text-secondary">Active LoRAs</label>
+                <select id="sd-lora-picker-select" class="app-input border rounded-lg px-2 py-0.5 text-[11px]">
+                  <option value="">+ Add LoRA...</option>
+                </select>
+              </div>
+              <div id="sd-selected-loras-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="sd-generate-btn" onclick="generateImagineImage()" class="w-full py-3 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-90 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-purple-500/20">
+              <i data-lucide="wand-2" class="w-4 h-4"></i> Generate Image
+            </button>
+            <div id="sd-generate-status" class="text-xs text-center app-text-muted font-mono"></div>
+
+            <div class="pt-2 border-t app-border text-center">
+              <button onclick="switchTab('settings')" class="text-xs text-accent hover:underline">
+                Configure Checkpoint, VAE, Multiple Encoders & Presets in Settings →
+              </button>
+            </div>
+          </div>
+
+          <!-- Gallery Column -->
+          <div class="lg:col-span-2">
+            <h3 class="text-sm font-semibold mb-3 flex items-center gap-2">
+              <i data-lucide="image" class="w-4 h-4 text-purple-400"></i> Generated Gallery
+            </h3>
+            <div id="imagine-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 5: ARTIFACTS ================= -->
+      <section id="section-artifacts" class="hidden flex-1 overflow-y-auto p-6 max-w-6xl mx-auto w-full">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold">Saved Artifacts</h2>
+          <p class="text-xs app-text-secondary">Code, scripts, and applications saved to your local PC disk. View, run live, or reveal in Windows Explorer.</p>
+        </div>
+        <div id="artifacts-list-container" class="space-y-3"></div>
+      </section>
+
+      <!-- ================= SECTION 6: SETTINGS ================= -->
+      <section id="section-settings" class="hidden flex-1 overflow-y-auto p-6 max-w-5xl mx-auto w-full space-y-8">
+        <div>
+          <h2 class="text-2xl font-bold">Settings & Customization</h2>
+          <p class="text-xs app-text-secondary">Themes, Ollama, Stable Diffusion Presets, Offline ZIM, Extensions, and Personal Profile.</p>
+        </div>
+
+        <!-- 1. Appearance & Theme Selection (Moved into Settings) -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <h3 class="font-semibold text-sm flex items-center gap-2">
+            <i data-lucide="palette" class="w-4 h-4 text-accent"></i> Appearance & Themes
+          </h3>
+          <p class="text-xs app-text-secondary">Select your favorite theme. All buttons, sidebars, accents, and bubbles adapt instantly.</p>
+          <div class="max-w-md">
+            <select id="setting-theme-select" onchange="applyTheme(this.value)" class="w-full app-input border rounded-xl p-2.5 text-xs font-medium cursor-pointer">
+              <option value="slate">🌒 Dark Slate (Obsidian Blue-Dark)</option>
+              <option value="charcoal">⬛ Charcoal Dark (ChatGPT Grey)</option>
+              <option value="oled">🖤 OLED Black (True Pitch Black)</option>
+              <option value="midnight">🔮 Midnight Purple (Electric Violet)</option>
+              <option value="cyber">🌲 Cyber Emerald (Matrix Green)</option>
+              <option value="gemini-light">☀️ Gemini Light (Clean White)</option>
+              <option value="paper-light">📜 Warm Paper (Claude Warm Cream)</option>
+              <option value="nord-light">❄️ Nordic Frost (Cool Light Blue-Grey)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Ollama Connection & Default Model -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <h3 class="font-semibold text-sm flex items-center gap-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-blue-400"></i> Ollama Configuration & Default Model
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">Ollama Base URL</label>
+              <div class="flex gap-2">
+                <input id="setting-ollama-url" type="text" class="flex-1 app-input border rounded-lg p-2 text-xs font-mono" />
+                <button onclick="testOllamaConnection()" class="px-3 py-1.5 app-input hover:bg-slate-700/40 text-xs rounded-lg font-medium">Test</button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">Default Chat Model</label>
+              <select id="setting-default-model-select" class="w-full app-input border rounded-lg p-2 text-xs font-mono"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">Embedding Model (for RAG)</label>
+              <input id="setting-embed-model" type="text" class="w-full app-input border rounded-lg p-2 text-xs font-mono" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">System Prompt Baseline</label>
+              <input id="setting-system-prompt" type="text" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. User Personalization Profile -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <h3 class="font-semibold text-sm flex items-center gap-2">
+            <i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i> Personal Information & Custom Instructions
+          </h3>
+          <p class="text-xs app-text-secondary">The model uses this information to personalize all responses to your preferences.</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">Your Name</label>
+              <input id="setting-user-name" type="text" placeholder="Alex" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium app-text-secondary mb-1">Your Role / Occupation</label>
+              <input id="setting-user-occ" type="text" placeholder="Developer" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div class="col-span-full">
+              <label class="block text-xs font-medium app-text-secondary mb-1">Custom Instructions (What should AI know about you?)</label>
+              <textarea id="setting-user-custom" rows="2" placeholder="Prefer clean Python code, format tables with markdown, explain architecture..." class="w-full app-input border rounded-lg p-2 text-xs"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Stable Diffusion Forge Neo Configuration & Presets (Multiple Text Encoders + LoRAs) -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-sm flex items-center gap-2">
+              <i data-lucide="palette" class="w-4 h-4 text-pink-400"></i> Stable Diffusion Forge Neo & Presets
+            </h3>
+            <button onclick="saveCurrentSettingsAsPreset()" class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-medium flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i> Save as New Preset
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Forge API URL</label>
+              <input id="setting-forge-url" type="text" placeholder="http://127.0.0.1:7860" class="w-full app-input border rounded-lg p-2 text-xs font-mono" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Checkpoint</label>
+              <select id="sd-checkpoint-select" class="w-full app-input border rounded-lg p-2 text-xs">
+                <option value="">Auto / Current</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">VAE (None or Entry)</label>
+              <select id="sd-vae-select" class="w-full app-input border rounded-lg p-2 text-xs">
+                <option value="Automatic">Automatic</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Multiple Text Encoders Selection -->
+          <div>
+            <label class="block text-[11px] font-semibold app-text-secondary mb-1.5">Text Encoders (Select one or multiple for SD3 / Flux / SDXL)</label>
+            <div id="sd-textencoders-pills-container" class="flex flex-wrap gap-2"></div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">CLIP Skip</label>
+              <input id="sd-clipskip-input" type="number" min="1" max="12" value="1" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Sampler</label>
+              <select id="sd-sampler-select" class="w-full app-input border rounded-lg p-2 text-xs"></select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Scheduler</label>
+              <select id="sd-scheduler-select" class="w-full app-input border rounded-lg p-2 text-xs"></select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Width</label>
+              <input id="sd-width-input" type="number" value="1024" step="64" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Height</label>
+              <input id="sd-height-input" type="number" value="1024" step="64" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Steps</label>
+              <input id="sd-steps-input" type="number" value="25" min="1" max="100" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">CFG Scale</label>
+              <input id="sd-cfg-input" type="number" value="7.0" step="0.5" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Shift (Flow)</label>
+              <input id="sd-shift-input" type="number" value="1.0" step="0.1" class="w-full app-input border rounded-lg p-2 text-xs" />
+            </div>
+          </div>
+
+          <!-- LoRAs in Settings -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="text-[11px] font-semibold app-text-secondary">LoRAs Preset Configuration</label>
+              <select id="setting-sd-lora-picker-select" class="app-input border rounded-lg px-2 py-0.5 text-[11px]">
+                <option value="">+ Add LoRA...</option>
+              </select>
+            </div>
+            <div id="setting-sd-selected-loras-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+          </div>
+
+          <!-- Saved Presets List in Settings -->
+          <div>
+            <label class="block text-xs font-semibold app-text-secondary mb-2">Saved SD Presets</label>
+            <div id="settings-presets-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+          </div>
+        </div>
+
+        <!-- 5. ZIM Offline Knowledge & Package Selector -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-semibold text-sm flex items-center gap-2">
+                <i data-lucide="hard-drive" class="w-4 h-4 text-cyan-400"></i> ZIM Offline Reader & Package Manager
+              </h3>
+              <p class="text-xs app-text-secondary">Download and select your active offline archive to browse Wikipedia without internet.</p>
+            </div>
+            <button onclick="loadZimCatalog()" class="p-1.5 app-input hover:bg-slate-700/40 rounded-lg" title="Refresh">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <!-- Active ZIM Package Diagnostic Status -->
+          <div id="active-zim-status-notice"></div>
+
+          <!-- Package Selection Dropdown -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Active Offline Package</label>
+              <select id="setting-active-zim-select" class="w-full app-input border rounded-lg p-2 text-xs">
+                <option value="">Auto-Detect Installed Archive</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold app-text-secondary mb-1">Zim Pro / Kiwix HTTP URL (Optional)</label>
+              <input id="setting-zim-url" type="text" placeholder="http://127.0.0.1:8080" class="w-full app-input border rounded-lg p-2 text-xs font-mono" />
+            </div>
+          </div>
+
+          <!-- Download Catalog Table -->
+          <div class="overflow-x-auto rounded-xl border app-border">
+            <table class="w-full text-left text-xs">
+              <thead class="app-card uppercase text-[10px] tracking-wider border-b app-border">
+                <tr>
+                  <th class="py-2.5 px-3">Dump Package</th>
+                  <th class="py-2.5 px-3">Size</th>
+                  <th class="py-2.5 px-3">Type</th>
+                  <th class="py-2.5 px-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="zim-catalog-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 6. Extensions & Integrated Tools -->
+        <div class="p-5 rounded-2xl border app-border app-card space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-sm flex items-center gap-2">
+              <i data-lucide="blocks" class="w-4 h-4 text-emerald-400"></i> Extensions & Auto-Tools
+            </h3>
+            <label class="flex items-center gap-2 text-xs cursor-pointer">
+              <input id="ext-toggle-autoroute" type="checkbox" class="rounded accent-blue-600" />
+              <span>Smart Intent Auto-Routing</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            <!-- Open-Meteo -->
+            <div class="p-3 app-input rounded-xl border app-border flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Open-Meteo Weather (Free)</div>
+                <div class="text-[11px] app-text-muted">Live global forecasts (No API key)</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="testExtension('open_meteo')" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                <input id="ext-toggle-meteo" type="checkbox" class="rounded accent-blue-600" />
+              </div>
+            </div>
+
+            <!-- Wikipedia API -->
+            <div class="p-3 app-input rounded-xl border app-border flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Wikipedia REST API (Free)</div>
+                <div class="text-[11px] app-text-muted">Instant encyclopedic extracts</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="testExtension('wikipedia')" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                <input id="ext-toggle-wiki" type="checkbox" class="rounded accent-blue-600" />
+              </div>
+            </div>
+
+            <!-- SearXNG -->
+            <div class="p-3 app-input rounded-xl border app-border flex flex-col justify-between gap-2">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="font-semibold">SearXNG Local Web Search</div>
+                  <div class="text-[11px] app-text-muted">Privacy-respecting meta search</div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="testExtension('searxng')" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                  <input id="ext-toggle-searxng" type="checkbox" class="rounded accent-blue-600" />
+                </div>
+              </div>
+              <input id="setting-searxng-url" type="text" placeholder="http://192.168.1.101:8080" class="w-full app-card border app-border rounded p-1.5 text-[11px] font-mono" />
+            </div>
+
+            <!-- DuckDuckGo (DDGS) -->
+            <div class="p-3 app-input rounded-xl border app-border flex items-center justify-between">
+              <div>
+                <div class="font-semibold">DuckDuckGo (DDGS)</div>
+                <div class="text-[11px] app-text-muted">Instant answers and web results</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="testExtension('ddgs')" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                <input id="ext-toggle-ddgs" type="checkbox" class="rounded accent-blue-600" />
+              </div>
+            </div>
+
+            <!-- Open Library / Gutendex -->
+            <div class="p-3 app-input rounded-xl border app-border flex items-center justify-between">
+              <div>
+                <div class="font-semibold">Open Library & Gutendex</div>
+                <div class="text-[11px] app-text-muted">Search millions of books & classics</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="testExtension('open_library')" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                <input id="ext-toggle-openlibrary" type="checkbox" class="rounded accent-blue-600" />
+              </div>
+            </div>
+
+            <!-- ZIM Offline Reader Toggle -->
+            <div class="p-3 app-input rounded-xl border app-border flex items-center justify-between">
+              <div>
+                <div class="font-semibold">ZIM Offline Extraction</div>
+                <div class="text-[11px] app-text-muted">Search downloaded ZIM packages</div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="testOfflineZimQuery()" class="px-2 py-1 app-card rounded text-[11px]">Test</button>
+                <input id="ext-toggle-zim" type="checkbox" class="rounded accent-blue-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. Save Button & Data Export/Reset -->
+        <div class="flex items-center justify-between pt-4 border-t app-border">
+          <div class="flex items-center gap-3">
+            <button onclick="exportChats()" class="px-3 py-2 app-card hover:bg-[var(--hover-bg)] text-xs rounded-xl flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Export Chats (JSON)
+            </button>
+            <button onclick="clearChatHistory()" class="px-3 py-2 bg-red-950/60 hover:bg-red-900/80 border border-red-500/30 text-xs rounded-xl text-red-300 flex items-center gap-1.5">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reset All Data
+            </button>
+          </div>
+          <button onclick="saveAllSettings()" class="px-6 py-2.5 btn-accent text-white rounded-xl text-xs font-bold shadow-md">
+            Save Settings
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Create Character Modal -->
+  <div id="character-create-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="app-card border rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between border-b app-border pb-3">
+        <h3 class="font-bold text-base">Create Custom Character</h3>
+        <button onclick="closeCreateCharacterModal()" class="app-text-muted hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold mb-1">Character Name</label>
+          <input id="char-name-input" type="text" placeholder="e.g. Quantum Physics Professor" class="w-full app-input border rounded-lg p-2 text-xs" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-semibold mb-1">Avatar (Emoji)</label>
+            <input id="char-avatar-input" type="text" value="🤖" class="w-full app-input border rounded-lg p-2 text-xs text-center" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold mb-1">Temperature</label>
+            <input id="char-temp-input" type="number" step="0.1" min="0" max="2" value="0.7" class="w-full app-input border rounded-lg p-2 text-xs" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Assigned Model (Custom Model)</label>
+          <select id="char-model-select" class="w-full app-input border rounded-lg p-2 text-xs font-mono"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">Short Description</label>
+          <input id="char-desc-input" type="text" placeholder="Expert in quantum mechanics, superposition, and quantum computing." class="w-full app-input border rounded-lg p-2 text-xs" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold mb-1">System Instructions / Prompt</label>
+          <textarea id="char-prompt-input" rows="4" placeholder="You are an enthusiastic professor of quantum physics..." class="w-full app-input border rounded-lg p-2 text-xs"></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t app-border">
+        <button onclick="closeCreateCharacterModal()" class="px-4 py-2 app-input rounded-xl text-xs font-medium">Cancel</button>
+        <button onclick="submitCreateCharacter()" class="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold">Create Character</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code Sandbox Interactive Modal -->
+  <div id="code-sandbox-modal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="app-card border rounded-2xl shadow-2xl max-w-4xl w-full h-[85vh] flex flex-col overflow-hidden">
+      <div class="p-4 border-b app-border flex items-center justify-between app-header">
+        <div class="flex items-center gap-2">
+          <i data-lucide="terminal" class="w-4 h-4 text-emerald-400"></i>
+          <span id="sandbox-modal-title" class="font-mono text-sm">Execution Sandbox</span>
+        </div>
+        <button onclick="closeSandboxModal()" class="p-1 rounded-lg app-text-muted hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 bg-slate-950 overflow-hidden relative">
+        <iframe id="sandbox-preview-iframe" class="w-full h-full border-0 bg-white" sandbox="allow-scripts allow-modals"></iframe>
+        <pre id="sandbox-console-output" class="hidden w-full h-full p-4 overflow-auto font-mono text-xs text-emerald-400 bg-slate-950 whitespace-pre-wrap"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application JS -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Mode Counter</title>
+    <style>
+        /* --- Dark Mode Styling --- */
+        :root {
+            --bg-color: #121212; /* Deep dark background */
+            --card-bg: #1e1e1e;  /* Slightly lighter card background */
+            --text-color: #e0e0e0; /* Light text */
+            --accent-color: #bb86fc; /* A nice purple accent for buttons */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+            margin: 0;
+        }
+
+        .counter-container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%; /* Responsive width */
+            max-width: 400px;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-bottom: 25px;
+        }
+
+        #countDisplay {
+            font-size: 4em;
+            margin: 20px 0;
+            font-weight: bold;
+            color: white; /* Bright color for the number */
+        }
+
+        .buttons button {
+            padding: 12px 25px;
+            font-size: 1em;
+            margin: 0 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            font-weight: 600;
+        }
+
+        #incrementBtn {
+            background-color: var(--accent-color);
+            color: var(--bg-color); /* Dark text on bright button */
+        }
+
+        #resetBtn {
+            background-color: #4a4e69; /* Slightly muted secondary color */
+            color: var(--text-color);
+        }
+
+        /* Hover effects for interactivity */
+        #incrementBtn:hover {
+            background-color: #9c6dff;
+            transform: translateY(-2px);
+        }
+
+        #resetBtn:hover {
+            background-color: #5a6480;
+            transform: translateY(-2px);
+        }
+
+        /* Media Query for very small screens (optional refinement) */
+        @media (max-width: 500px) {
+            .counter-container {
+                padding: 30px;
+            }
+            #countDisplay {
+                font-size: 3em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="counter-container">
+        <h1>Simple Counter App</h1>
+        
+        <!-- Display for the count -->
+        <div id="countDisplay">0</div>
+        
+        <!-- Buttons -->
+        <div class="buttons">
+            <button id="incrementBtn" onclick="increment()">Increment</button>
+            <button id="resetBtn" onclick="reset()">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize the counter variable
+        let count = 0;
+        
+        // Get references to the DOM elements
+        const countDisplay = document.getElementById('countDisplay');
+
+        /**
+         * Function to increment the counter by 1.
+         */
+        function increment() {
+            count++;
+            countDisplay.textContent = count;
+        }
+
+        /**
+         * Function to reset the counter to 0.
+         */
+        function reset() {
+            count = 0;
+            countDisplay.textContent = count;
+        }
+    </script>
+
+</body>
+</html>
