@@ -27,7 +27,7 @@ A modern, full-featured **Ollama Client & AI Studio** built with Python and Fast
 
 ### 🎭 Characters & Personas
 - Create and manage custom personas with custom Name, Avatar (emoji or image), System Prompt, Preferred Model, and Temperature.
-- Ships with built-in presets: **Senior Python Architect**, **Fullstack Ninja**, **Academic Researcher**, **Creative Storyteller**, and **Sarcastic Tech Reviewer**.
+- Ships with built-in presets
 
 ### 🎨 Imagine (Stable Diffusion Forge Neo)
 - Deep integration with **Stable Diffusion WebUI / Forge / Forge Neo / Automatic1111 / SD.Next API**.
@@ -61,7 +61,7 @@ All extensions can be toggled on/off in Settings. When **Smart Intent Auto-Routi
 
 ## 🚀 Quick Start on Windows
 
-1. Double click `start.bat` in the root folder `c:\Softwares\SuperOllama`.
+1. Double click `start.bat` in the root folder.
 2. The script will verify dependencies, launch the server, and automatically open your default web browser to:
    - **Desktop**: [http://localhost:8000](http://localhost:8000)
    - **Mobile / Local Network**: Open `http://<YOUR_PC_IP>:8000` from your phone or tablet connected to the same Wi-Fi.
